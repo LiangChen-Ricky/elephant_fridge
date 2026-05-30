@@ -1,0 +1,12 @@
+# ── 敏感信息 ── 这些文件绝对不要分享或上传
+.env
+*.env
+.env.local
+
+# ── 数据文件 ──
+fridge_data.json
+
+# ── Python 编译缓存 ──
+__pycache__/
+*.pyc
+*.pyo

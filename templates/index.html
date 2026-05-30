@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐘 冰箱里的大象OS</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#43A047;--green-l:#E8F5E9;
+  --teal:#00ACC1;--teal-l:#E0F7FA;
+  --orange:#FB8C00;--orange-l:#FFF3E0;
+  --red:#E53935;--red-l:#FFEBEE;
+  --yellow:#F9A825;--purple:#8E24AA;--purple-l:#F3E5F5;
+  --blue:#1E88E5;--blue-l:#E3F2FD;
+  --bg:#F4FAF6;--card:#fff;--text:#263238;--muted:#78909C;
+  --border:#DCEDC8;--radius:14px;
+  --shadow:0 2px 16px rgba(67,160,71,.10);
+}
+body{font-family:'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{background:linear-gradient(120deg,#2E7D32 0%,#00897B 60%,#0097A7 100%);color:#fff;height:60px;padding:0 28px;display:flex;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.18);position:relative}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-elephant{font-size:2rem}
+.logo-text{font-size:1.15rem;font-weight:800}
+.logo-sub{font-size:.7rem;opacity:.8}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:20px 24px 0;max-width:1080px;margin:0 auto}
+.stat{background:var(--card);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);border-top:3px solid var(--green);transition:transform .18s}
+.stat:hover{transform:translateY(-2px)}
+.stat.warn{border-color:var(--orange)}.stat.danger{border-color:var(--red)}.stat.info{border-color:var(--teal)}
+.stat-n{font-size:2rem;font-weight:800}
+.stat:nth-child(1) .stat-n{color:var(--teal)}.stat:nth-child(2) .stat-n{color:var(--green)}
+.stat:nth-child(3) .stat-n{color:var(--orange)}.stat:nth-child(4) .stat-n{color:var(--red)}
+.stat-l{font-size:.78rem;color:var(--muted);margin-top:2px}
+
+.tabs-wrap{max-width:1080px;margin:18px auto 0;padding:0 24px}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{padding:9px 18px;border:none;background:none;font-size:.9rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .18s;white-space:nowrap;border-radius:8px 8px 0 0}
+.tab-btn:hover{color:var(--green);background:var(--green-l)}
+.tab-btn.active{color:var(--green);border-bottom-color:var(--green);background:var(--green-l)}
+.badge{background:var(--red);color:#fff;border-radius:10px;font-size:.68rem;padding:1px 6px;margin-left:4px;display:none}
+.badge.on{display:inline}
+
+.content{max-width:1080px;margin:0 auto;padding:20px 24px}
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:18px}
+.card-title{font-size:1rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:9px 12px;background:var(--bg);color:var(--muted);font-size:.76rem;font-weight:700;border-bottom:2px solid var(--border)}
+td{padding:11px 12px;font-size:.85rem;border-bottom:1px solid #f1f8e9;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f9fef9}
+.zone-tag{display:inline-block;padding:2px 9px;border-radius:10px;font-size:.73rem;font-weight:700}
+.zone-冷藏{background:#E3F2FD;color:#1565C0}.zone-冷冻{background:#EDE7F6;color:#6A1B9A}.zone-保鲜{background:#E8F5E9;color:#1B5E20}
+.s-ok{color:var(--green);font-weight:600}.s-soon{color:var(--orange);font-weight:700}
+.s-today{color:var(--red);font-weight:800;animation:blink 1s infinite}.s-exp{color:var(--red);font-weight:600}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+
+.btn{border:none;cursor:pointer;border-radius:9px;font-weight:600;transition:all .18s;font-size:.85rem;display:inline-flex;align-items:center;gap:5px;line-height:1}
+.btn-primary{background:linear-gradient(135deg,var(--green),#2E7D32);color:#fff;padding:10px 22px;box-shadow:0 2px 8px rgba(67,160,71,.28)}
+.btn-primary:hover{transform:translateY(-1px)}
+.btn-teal{background:linear-gradient(135deg,var(--teal),#007C91);color:#fff;padding:10px 22px}
+.btn-teal:hover{transform:translateY(-1px)}
+.btn-purple{background:linear-gradient(135deg,var(--purple),#6A1B9A);color:#fff;padding:10px 22px}
+.btn-purple:hover{transform:translateY(-1px)}
+.btn-blue{background:linear-gradient(135deg,var(--blue),#1565C0);color:#fff;padding:10px 22px;box-shadow:0 2px 8px rgba(30,136,229,.28)}
+.btn-blue:hover{transform:translateY(-1px)}
+.btn-orange{background:linear-gradient(135deg,#FB8C00,#E65100);color:#fff;padding:10px 22px;box-shadow:0 2px 8px rgba(251,140,0,.28)}
+.btn-orange:hover{transform:translateY(-1px)}
+/* 选中食材卡片 */
+.alert-card.chosen{border-left-color:var(--green);background:var(--green-l)}
+.btn-choose{background:var(--teal-l);color:var(--teal);padding:5px 12px;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:.8rem;transition:all .18s}
+.btn-choose:hover{background:var(--teal);color:#fff}
+.btn-choose.chosen{background:var(--green);color:#fff}
+/* 选中计数条 */
+#chosen-bar{display:none;background:linear-gradient(135deg,var(--green-l),var(--teal-l));border-radius:10px;padding:10px 16px;margin-bottom:14px;font-size:.85rem;align-items:center;gap:10px;border-left:3px solid var(--green)}
+#chosen-bar.on{display:flex}
+.btn-outline{background:#fff;border:2px solid var(--green);color:var(--green);padding:9px 18px}
+.btn-outline:hover{background:var(--green);color:#fff}
+.btn-danger{background:var(--red-l);color:var(--red);padding:5px 11px}
+.btn-danger:hover{background:var(--red);color:#fff}
+.btn-use{background:var(--teal-l);color:var(--teal);padding:5px 11px}
+.btn-use:hover{background:var(--teal);color:#fff}
+.btn-ai{background:linear-gradient(135deg,#FF8C42,#F9A825);color:#fff;padding:8px 14px;font-size:.8rem;border-radius:8px;border:none;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:4px;transition:all .18s}
+.btn-ai:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(249,168,37,.4)}
+.btn-ai:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-sm{padding:5px 10px;font-size:.78rem}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+label{font-size:.8rem;font-weight:700;color:var(--text)}
+input,select,textarea{border:2px solid var(--border);border-radius:9px;padding:9px 13px;font-size:.88rem;color:var(--text);background:#fff;font-family:inherit;transition:border-color .18s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(67,160,71,.1)}
+.hint{font-size:.73rem;color:var(--muted)}
+
+.lookup-chip{display:none;background:linear-gradient(135deg,var(--green-l),var(--teal-l));border-radius:8px;padding:8px 12px;font-size:.8rem;margin-top:5px;border-left:3px solid var(--green)}
+.lookup-chip.on{display:block}
+.ai-result{display:none;background:linear-gradient(135deg,#FFF8E1,#FFF3E0);border-radius:8px;padding:10px 14px;font-size:.82rem;margin-top:6px;border-left:3px solid var(--yellow)}
+.ai-result.on{display:block}
+.meat-tip{display:none;background:linear-gradient(135deg,#FFF8E1,#FFF3E0);border-radius:9px;padding:11px 14px;font-size:.8rem;border-left:3px solid var(--yellow);margin:10px 0}
+.meat-tip.on{display:block}
+
+/* 预警阈值选择器 */
+.threshold-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px 14px;background:var(--bg);border-radius:10px;font-size:.85rem}
+.threshold-bar strong{color:var(--text)}
+.threshold-opt{display:flex;align-items:center;gap:5px;cursor:pointer;padding:5px 12px;border-radius:20px;border:2px solid var(--border);background:#fff;font-size:.82rem;font-weight:600;transition:all .18s;color:var(--muted)}
+.threshold-opt:hover{border-color:var(--orange);color:var(--orange)}
+.threshold-opt.active{border-color:var(--orange);background:var(--orange-l);color:var(--orange)}
+.threshold-opt input{display:none}
+
+.alert-card{border-radius:10px;padding:13px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.a-exp{background:var(--red-l);border-left:3px solid var(--red)}
+.a-soon{background:var(--orange-l);border-left:3px solid var(--orange)}
+.a-name{font-weight:700;font-size:.9rem}
+.a-meta{font-size:.76rem;color:var(--muted);margin-top:2px}
+
+.recipe-box{display:none;background:linear-gradient(135deg,#F1FFF4,#E8F5FF);border-radius:10px;padding:20px;font-size:.88rem;line-height:1.9;border:1px solid var(--border);margin-top:14px;white-space:pre-wrap}
+.recipe-box.on{display:block}
+
+/* 本周膳食 */
+.weekly-placeholder{text-align:center;padding:50px 30px;color:#B0BEC5}
+.weekly-placeholder .wp-icon{font-size:3rem;margin-bottom:14px;opacity:.5}
+.weekly-placeholder .wp-title{font-size:1rem;font-weight:600;margin-bottom:8px;color:#90A4AE}
+.weekly-placeholder .wp-desc{font-size:.82rem;line-height:1.7;max-width:380px;margin:0 auto}
+.weekly-plan{display:none;white-space:pre-wrap;font-size:.88rem;line-height:2;background:linear-gradient(135deg,#F8FFF4,#EFF8FF);border-radius:10px;padding:22px;border:1px solid var(--border);margin-top:14px}
+.weekly-plan.on{display:block}
+
+.choice-group{margin-bottom:16px}
+.choice-label{font-size:.8rem;font-weight:700;margin-bottom:7px;display:block}
+.choice-row{display:flex;flex-wrap:wrap;gap:7px}
+.choice-btn{border:2px solid var(--border);background:#fff;border-radius:18px;padding:5px 14px;font-size:.82rem;cursor:pointer;transition:all .18s;color:var(--text)}
+.choice-btn:hover{border-color:var(--green);color:var(--green)}
+.choice-btn.sel{background:var(--green);border-color:var(--green);color:#fff;font-weight:700}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.overlay.on{display:flex}
+.modal{background:#fff;border-radius:var(--radius);padding:26px;width:400px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:su .25s ease}
+@keyframes su{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-title{font-size:1.05rem;font-weight:700;margin-bottom:16px}
+.modal-actions{display:flex;gap:9px;margin-top:18px;justify-content:flex-end}
+
+#toast{position:fixed;bottom:22px;right:22px;background:#333;color:#fff;border-radius:10px;padding:11px 18px;font-size:.86rem;z-index:999;transform:translateY(80px);opacity:0;transition:all .25s;max-width:320px}
+#toast.on{transform:translateY(0);opacity:1}
+#toast.ok{background:var(--green)}#toast.err{background:var(--red)}#toast.warn{background:var(--orange)}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.spin-dark{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.15);border-top-color:#FB8C00;border-radius:50%;animation:sp .6s linear infinite}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty .e-icon{font-size:2.6rem;margin-bottom:10px}
+
+@media(max-width:700px){
+  .stats{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}
+  .content{padding:14px}
+  .tabs-wrap{padding:0 14px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-elephant">🐘</span>
+    <div>
+      <div class="logo-text">冰箱里的大象OS</div>
+      <div class="logo-sub">鲜到位，省到家，冰象守护你的冰箱</div>
+    </div>
+  </div>
+  <div style="position:absolute;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none">
+    <div style="font-size:1.1rem;font-weight:900;color:#fff;letter-spacing:2px;text-shadow:0 2px 8px rgba(0,0,0,.25)">小亮出品 &nbsp; 必属精品</div>
+  </div>
+  <button id="reset-btn" onclick="resetSession()" title="重置本次会话所有临时状态（不删除冰箱数据）"
+    style="background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.5);border-radius:20px;
+    padding:5px 16px;color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;
+    backdrop-filter:blur(8px);transition:all .2s;letter-spacing:.3px">
+    ↺ 重置
+  </button>
+</header>
+
+<div class="stats">
+  <div class="stat info"><div class="stat-n" id="s-total">-</div><div class="stat-l">冰箱总食材</div></div>
+  <div class="stat"><div class="stat-n" id="s-ok">-</div><div class="stat-l">保质期安全 ✅</div></div>
+  <div class="stat warn"><div class="stat-n" id="s-soon">-</div><div class="stat-l">2天内到期 ⚠️</div></div>
+  <div class="stat danger"><div class="stat-n" id="s-exp">-</div><div class="stat-l">已过期 ❌</div></div>
+</div>
+
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('fridge',this)">🧊 冰箱库存</button>
+    <button class="tab-btn" onclick="switchTab('add',this)">➕ 添加食材</button>
+    <button class="tab-btn" onclick="switchTab('alerts',this)">⚠️ 到期预警 <span class="badge" id="alert-badge">0</span></button>
+    <button class="tab-btn" onclick="switchTab('recipe',this)">🍳 标准菜谱</button>
+    <button class="tab-btn" onclick="switchTab('custom',this)">✨ 私人定制</button>
+    <button class="tab-btn" onclick="switchTab('weekly',this)">📅 本周膳食</button>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- 冰箱库存 -->
+<div class="panel active" id="panel-fridge">
+  <div class="card">
+    <div class="card-title">
+      🧊 冰箱库存
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="loadItems()">🔄 刷新</button>
+        <button class="btn btn-danger btn-sm" onclick="clearExpired()">🧹 清理过期</button>
+      </div>
+    </div>
+    <div id="fridge-wrap">
+      <div class="empty"><div class="e-icon">🐘</div><div>冰箱是空的，去添加食材吧！</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 添加食材 -->
+<div class="panel" id="panel-add">
+  <div class="card">
+    <div class="card-title">➕ 添加食材到冰箱</div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>食材名称 *</label>
+        <input id="a-name" type="text" placeholder="如：鸡胸肉、西兰花、草莓…" oninput="onName()">
+        <div class="lookup-chip" id="lookup-chip"></div>
+      </div>
+      <div class="form-group">
+        <label>存放区域</label>
+        <select id="a-zone" onchange="onZoneChange()">
+          <option value="冷藏">🌡️ 冷藏（0-4°C）</option>
+          <option value="冷冻">❄️ 冷冻（-18°C）</option>
+          <option value="保鲜">🌿 保鲜抽屉</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>保质天数</label>
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <div style="flex:1">
+            <input id="a-days" type="number" placeholder="天" min="1" style="width:100%">
+            <span class="hint">从今天起存放多少天安全</span>
+          </div>
+          <button class="btn-ai" id="ai-days-btn" onclick="getAIShelfLife()" disabled title="请先填写食材名称">
+            🤖 AI建议
+          </button>
+        </div>
+        <div class="ai-result" id="ai-days-result"></div>
+      </div>
+      <div class="form-group">
+        <label>数量</label>
+        <input id="a-qty" type="text" placeholder="如：500g、2个、1包">
+        <span class="hint">数字+单位可精确追踪剩余量</span>
+      </div>
+      <div class="form-group">
+        <label>分装份数</label>
+        <input id="a-portions" type="number" value="1" min="1">
+        <span class="hint">已分成几份冷冻（默认1份）</span>
+      </div>
+      <div class="form-group full">
+        <label>备注（可选）</label>
+        <input id="a-notes" type="text" placeholder="如：已腌制、周三购买">
+      </div>
+    </div>
+    <div class="meat-tip" id="meat-tip-add">
+      🥩 <strong>分装小贴士：</strong>肉类建议入冰箱前按每次用量分装，每份装保鲜袋并标注日期和重量，放冷冻。每次只取一份解冻，其余保持新鲜！
+    </div>
+    <button class="btn btn-primary" onclick="addItem()"><span id="add-txt">➕ 添加到冰箱</span></button>
+  </div>
+</div>
+
+<!-- 到期预警 -->
+<div class="panel" id="panel-alerts">
+  <div class="card" style="padding-bottom:10px">
+    <!-- 预警天数选择器 -->
+    <div class="threshold-bar">
+      <strong>预警范围：</strong>
+      <label class="threshold-opt active" id="th-1">
+        <input type="radio" name="threshold" value="1" checked onchange="loadAlerts()"> 1天内到期
+      </label>
+      <label class="threshold-opt" id="th-2">
+        <input type="radio" name="threshold" value="2" onchange="loadAlerts()"> 2天内到期
+      </label>
+    </div>
+  </div>
+
+  <div class="card" id="sec-expired" style="display:none">
+    <div class="card-title" style="color:var(--red)">❌ 已过期食材（立即处理）</div>
+    <div id="list-expired"></div>
+  </div>
+  <div class="card" id="sec-expiring" style="display:none">
+    <div class="card-title" style="color:var(--orange)">⚠️ 即将到期（赶紧用）</div>
+    <div id="list-expiring"></div>
+    <div style="margin-top:14px">
+      <button class="btn btn-teal" onclick="recipeFromAlert()">🍳 根据这些食材获取AI菜谱</button>
+    </div>
+  </div>
+  <div id="alerts-empty" class="empty" style="display:none">
+    <div class="e-icon">🎉</div><div>选定范围内没有即将过期的食材，太棒了！</div>
+  </div>
+</div>
+
+<!-- 标准菜谱 -->
+<div class="panel" id="panel-recipe">
+  <div class="card">
+    <div class="card-title">🍳 AI标准菜谱建议</div>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:14px">根据冰箱当前食材，AI推荐菜谱，优先使用即将到期的食材减少浪费。</p>
+    <!-- 菜谱数量调节 -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-size:.82rem;font-weight:700;color:var(--text)">推荐数量：</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button onclick="changeRN(-1)" style="width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:#fff;font-size:1rem;cursor:pointer;font-weight:700;line-height:1">−</button>
+        <span id="r-n-display" style="font-size:1.1rem;font-weight:800;color:var(--green);min-width:24px;text-align:center">2</span>
+        <button onclick="changeRN(1)" style="width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:#fff;font-size:1rem;cursor:pointer;font-weight:700;line-height:1">+</button>
+        <span style="font-size:.75rem;color:var(--muted)">道菜（最多10）</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="getRecipe(false)"><span id="r-btn">🍳 获取菜谱建议</span></button>
+      <button class="btn btn-outline" onclick="getRecipe(true)">⚠️ 只用快到期的食材</button>
+      <button class="btn btn-orange" id="r-chosen-btn" onclick="getRecipeFromChosen()" style="display:none">
+        ✅ 使用选中的食材（<span id="r-chosen-count">0</span>种）
+      </button>
+    </div>
+    <div class="recipe-box" id="recipe-out"></div>
+  </div>
+</div>
+
+<!-- 私人定制 -->
+<div class="panel" id="panel-custom">
+  <div class="card">
+    <div class="card-title">✨ AI私人定制菜谱</div>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:18px">告诉AI你的口味偏好和今天的场景，获得专属定制菜谱 😊</p>
+    <div class="choice-group">
+      <span class="choice-label">🗺️ 口味地域</span>
+      <div class="choice-row" id="g-region">
+        <button class="choice-btn" data-v="北方">北方风味</button>
+        <button class="choice-btn" data-v="南方">南方清淡</button>
+        <button class="choice-btn" data-v="川湘麻辣">川湘麻辣</button>
+        <button class="choice-btn" data-v="粤式清淡">粤式鲜美</button>
+        <button class="choice-btn sel" data-v="随意">随意都行</button>
+      </div>
+    </div>
+    <div class="choice-group">
+      <span class="choice-label">🧂 口味偏好</span>
+      <div class="choice-row" id="g-taste">
+        <button class="choice-btn" data-v="偏咸">偏咸</button>
+        <button class="choice-btn" data-v="偏甜">偏甜</button>
+        <button class="choice-btn" data-v="清淡">清淡</button>
+        <button class="choice-btn" data-v="重口味">重口味</button>
+        <button class="choice-btn sel" data-v="随意">随意</button>
+      </div>
+    </div>
+    <div class="choice-group">
+      <span class="choice-label">🍽️ 用餐场景</span>
+      <div class="choice-row" id="g-occ">
+        <button class="choice-btn sel" data-v="日常家常">日常家常</button>
+        <button class="choice-btn" data-v="朋友聚餐">朋友聚餐</button>
+        <button class="choice-btn" data-v="节日大餐">节日大餐</button>
+        <button class="choice-btn" data-v="减脂健康">减脂健康</button>
+        <button class="choice-btn" data-v="快手菜30分钟内">快手菜</button>
+      </div>
+    </div>
+    <div class="form-grid" style="margin-top:4px">
+      <div class="form-group">
+        <label>🚫 忌口 / 过敏</label>
+        <input id="c-avoid" type="text" placeholder="如：不吃辣、海鲜过敏（没有留空）">
+      </div>
+      <div class="form-group">
+        <label>📋 推荐数量</label>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:2px">
+          <button onclick="changeCN(-1)" style="width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:#fff;font-size:1rem;cursor:pointer;font-weight:700">−</button>
+          <span id="c-n-display" style="font-size:1.1rem;font-weight:800;color:var(--purple);min-width:24px;text-align:center">2</span>
+          <button onclick="changeCN(1)" style="width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:#fff;font-size:1rem;cursor:pointer;font-weight:700">+</button>
+          <span style="font-size:.75rem;color:var(--muted)">道菜（最多10）</span>
+        </div>
+      </div>
+      <div class="form-group full">
+        <label>💬 特殊要求</label>
+        <textarea id="c-note" rows="2" placeholder="例如：今天有客人来；最近减肥希望低脂；家里有老人小孩口味要温和"></textarea>
+      </div>
+    </div>
+    <button class="btn btn-purple" onclick="getCustomRecipe()"><span id="c-btn">✨ 生成专属菜谱</span></button>
+    <div class="recipe-box" id="custom-out"></div>
+  </div>
+</div>
+
+<!-- 本周膳食 -->
+<div class="panel" id="panel-weekly">
+  <div class="card">
+    <div class="card-title">📅 本周家庭膳食建议</div>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px">AI根据冰箱现有食材，为你规划本周7天三餐，合理分配食材、减少浪费。</p>
+    <button class="btn btn-blue" onclick="getWeeklyPlan()"><span id="w-btn">📅 生成本周膳食计划</span></button>
+
+    <!-- 空状态占位 -->
+    <div id="weekly-placeholder" class="weekly-placeholder">
+      <div class="wp-icon">🥦🍗🥕</div>
+      <div class="wp-title">本周膳食计划</div>
+      <div class="wp-desc">
+        点击上方按钮，AI将根据你冰箱里的现有食材，<br>
+        为全家规划一周的早中晚三餐建议。<br><br>
+        <span style="color:#CFD8DC">优先消耗快过期的食材 · 营养均衡搭配 · 贴近中国家庭日常</span>
+      </div>
+    </div>
+
+    <div class="weekly-plan" id="weekly-out"></div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<!-- 使用食材 Modal -->
+<div class="overlay" id="use-overlay">
+  <div class="modal">
+    <div class="modal-title">🍽️ 使用食材</div>
+    <input type="hidden" id="use-id">
+    <p id="use-info" style="font-size:.88rem;color:var(--muted);margin-bottom:14px"></p>
+    <div id="use-amount-wrap" class="form-group">
+      <label>使用了多少？</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="number" id="use-amount" step="any" min="0" style="flex:1">
+        <span id="use-unit" style="font-weight:700"></span>
+      </div>
+    </div>
+    <div class="meat-tip" id="meat-tip-use" style="margin-top:10px">
+      🥩 下次肉类入冰箱前建议按份分装冷冻，用一份取一份！
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmUse()">✅ 确认使用</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const MEATS = ['猪肉','牛肉','羊肉','鸡肉','鸡胸','鸡腿','鸭肉','猪排','五花','排骨','虾','鱼','三文','螃蟹'];
+const isMeat = n => MEATS.some(k => n.includes(k));
+let _lookTimer = null;
+
+// ── 选中食材状态 ──
+let chosenItems = {}; // {item_id: {name, ...}}
+
+function toggleChoose(itemId, name) {
+  if (chosenItems[itemId]) {
+    delete chosenItems[itemId];
+  } else {
+    chosenItems[itemId] = {name};
+  }
+  updateChosenUI();
+}
+
+function updateChosenUI() {
+  const count = Object.keys(chosenItems).length;
+  // 更新所有选中按钮样式
+  document.querySelectorAll('.btn-choose').forEach(btn => {
+    const id = btn.dataset.id;
+    const isChosen = !!chosenItems[id];
+    btn.textContent = isChosen ? '✅ 已选中' : '☑ 选中';
+    btn.classList.toggle('chosen', isChosen);
+    btn.closest('.alert-card')?.classList.toggle('chosen', isChosen);
+  });
+  // 选中计数条
+  const bar = document.getElementById('chosen-bar');
+  const countEl = document.getElementById('chosen-count');
+  if (countEl) countEl.textContent = count;
+  bar?.classList.toggle('on', count > 0);
+  // 标准菜谱里的"使用选中"按钮
+  const rBtn = document.getElementById('r-chosen-btn');
+  const rCount = document.getElementById('r-chosen-count');
+  if (rBtn) { rBtn.style.display = count > 0 ? 'inline-flex' : 'none'; }
+  if (rCount) rCount.textContent = count;
+}
+
+// ── 菜谱数量控制 ──
+let recipeN = 2;  // 标准菜谱
+let customN = 2;  // 私人定制
+
+function changeRN(delta) {
+  recipeN = Math.max(1, Math.min(10, recipeN + delta));
+  document.getElementById('r-n-display').textContent = recipeN;
+}
+function changeCN(delta) {
+  customN = Math.max(1, Math.min(10, customN + delta));
+  document.getElementById('c-n-display').textContent = customN;
+}
+
+// ── 重置会话 ──
+function resetSession() {
+  if (!confirm('重置本次会话？\n\n这将清除：选中的食材、菜谱输出、表单输入。\n冰箱数据库不受影响。')) return;
+  // 清选中
+  chosenItems = {};
+  updateChosenUI();
+  // 清菜谱输出
+  ['recipe-out','custom-out','weekly-out'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = ''; el.classList.remove('on'); }
+  });
+  // 清添加表单
+  ['a-name','a-qty','a-notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  const aDays = document.getElementById('a-days'); if(aDays) aDays.value='';
+  const aPor = document.getElementById('a-portions'); if(aPor) aPor.value='1';
+  document.getElementById('lookup-chip')?.classList.remove('on');
+  document.getElementById('ai-days-result')?.classList.remove('on');
+  document.getElementById('meat-tip-add')?.classList.remove('on');
+  // 清私人定制输入
+  const cAvoid = document.getElementById('c-avoid'); if(cAvoid) cAvoid.value='';
+  const cNote = document.getElementById('c-note'); if(cNote) cNote.value='';
+  // 重置数量
+  recipeN = 2; customN = 2;
+  document.getElementById('r-n-display').textContent = '2';
+  document.getElementById('c-n-display').textContent = '2';
+  // 重置choice按钮
+  document.querySelectorAll('.choice-row').forEach(row => {
+    row.querySelectorAll('.choice-btn').forEach((b,i,all) => {
+      b.classList.toggle('sel', i === all.length - 1);
+    });
+  });
+  // 重置预警阈值
+  document.querySelector('input[name="threshold"][value="1"]').checked = true;
+  document.getElementById('th-1').classList.add('active');
+  document.getElementById('th-2').classList.remove('active');
+  // 隐藏weekly placeholder
+  const wp = document.getElementById('weekly-placeholder'); if(wp) wp.style.display='block';
+  const wo = document.getElementById('weekly-out'); if(wo) wo.classList.remove('on');
+  toast('✅ 已重置本次会话状态', 'ok');
+}
+
+function toast(msg, type='ok', dur=3000){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='on '+type;
+  setTimeout(()=>el.className='',dur);
+}
+
+function switchTab(name, btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  if(name==='fridge') loadItems();
+  if(name==='alerts') loadAlerts();
+}
+
+function sClass(item){
+  if(item.is_expired) return 's-exp';
+  if(item.days_remaining===0) return 's-today';
+  if(item.is_expiring_soon) return 's-soon';
+  return 's-ok';
+}
+
+// ── 统计 ──
+async function loadStats(){
+  const d=await(await fetch('/api/stats')).json();
+  document.getElementById('s-total').textContent=d.total;
+  document.getElementById('s-ok').textContent=d.ok;
+  document.getElementById('s-soon').textContent=d.expiring_soon;
+  document.getElementById('s-exp').textContent=d.expired;
+  const n=d.expiring_soon+d.expired;
+  const b=document.getElementById('alert-badge');
+  b.textContent=n; b.classList.toggle('on',n>0);
+}
+
+// ── 冰箱库存 ──
+async function loadItems(){
+  const items=await(await fetch('/api/items')).json();
+  const wrap=document.getElementById('fridge-wrap');
+  if(!items.length){
+    wrap.innerHTML='<div class="empty"><div class="e-icon">🐘</div><div>冰箱是空的，去添加食材吧！</div></div>';
+    return;
+  }
+  wrap.innerHTML=`<table>
+    <thead><tr><th>ID</th><th>食材</th><th>区域</th><th>剩余数量</th><th>入库日期</th><th>到期日</th><th>状态</th><th>操作</th></tr></thead>
+    <tbody>${items.map(i=>`<tr>
+      <td style="font-size:.72rem;color:var(--muted)">${i.item_id}</td>
+      <td><strong>${i.name}</strong>${i.notes?`<div style="font-size:.72rem;color:var(--muted)">${i.notes}</div>`:''}</td>
+      <td><span class="zone-tag zone-${i.zone}">${i.zone}</span></td>
+      <td>${i.quantity_display}</td>
+      <td style="font-size:.8rem">${i.date_added}</td>
+      <td style="font-size:.8rem">${i.expiry_date}</td>
+      <td class="${sClass(i)}">${i.status}</td>
+      <td style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn btn-use btn-sm" onclick="openUse('${i.item_id}','${i.name}',${i.amount},'${i.unit}')">使用</button>
+        <button class="btn btn-danger btn-sm" onclick="delItem('${i.item_id}','${i.name}')">删除</button>
+      </td>
+    </tr>`).join('')}</tbody></table>`;
+  loadStats();
+}
+
+async function delItem(id,name){
+  if(!confirm(`确认删除「${name}」？`)) return;
+  const d=await(await fetch(`/api/items/${id}`,{method:'DELETE'})).json();
+  if(d.success){toast(`已删除 ${name}`);loadItems();}
+  else toast('删除失败','err');
+}
+
+async function clearExpired(){
+  if(!confirm('确认清理所有过期食材？')) return;
+  const d=await(await fetch('/api/clear-expired',{method:'POST'})).json();
+  toast(`已清理 ${d.removed} 项过期食材`); loadItems();
+}
+
+// ── 添加食材 ──
+function checkAIBtn(){
+  const name=document.getElementById('a-name').value.trim();
+  document.getElementById('ai-days-btn').disabled = !name;
+}
+
+function onZoneChange(){ checkAIBtn(); }
+
+async function onName(){
+  const name=document.getElementById('a-name').value.trim();
+  document.getElementById('meat-tip-add').classList.toggle('on',isMeat(name));
+  checkAIBtn();
+  if(_lookTimer) clearTimeout(_lookTimer);
+  if(!name){document.getElementById('lookup-chip').classList.remove('on');return;}
+  _lookTimer=setTimeout(async()=>{
+    const d=await(await fetch('/api/lookup?name='+encodeURIComponent(name))).json();
+    const chip=document.getElementById('lookup-chip');
+    chip.innerHTML=`💡 知识库建议：<strong>存放 = ${d.zone}</strong>，<strong>保质 ${d.expiry_days} 天</strong>`;
+    chip.classList.add('on');
+    document.getElementById('a-zone').value=d.zone;
+    document.getElementById('a-days').value=d.expiry_days;
+  },400);
+}
+
+async function getAIShelfLife(){
+  const name=document.getElementById('a-name').value.trim();
+  const zone=document.getElementById('a-zone').value;
+  if(!name){toast('请先填写食材名称','warn');return;}
+  const btn=document.getElementById('ai-days-btn');
+  const res=document.getElementById('ai-days-result');
+  btn.innerHTML='<span class="spin-dark"></span> 查询中…';
+  btn.disabled=true;
+  res.classList.remove('on');
+  const r=await fetch('/api/shelf-life',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,zone})});
+  btn.innerHTML='🤖 AI建议';
+  btn.disabled=false;
+  if(r.status===503){toast('AI未配置，请设置API Key','err',4000);return;}
+  const d=await r.json();
+  if(d.success){
+    document.getElementById('a-days').value=d.days;
+    res.innerHTML=`🤖 AI建议保质 <strong>${d.days} 天</strong>｜${d.reason}`;
+    res.classList.add('on');
+  } else {
+    toast(d.error||'AI查询失败','err');
+  }
+}
+
+async function addItem(){
+  const name=document.getElementById('a-name').value.trim();
+  if(!name){toast('请输入食材名称','warn');return;}
+  const body={
+    name,
+    zone:document.getElementById('a-zone').value,
+    quantity:document.getElementById('a-qty').value||'1份',
+    expiry_days:parseInt(document.getElementById('a-days').value)||5,
+    portions:parseInt(document.getElementById('a-portions').value)||1,
+    notes:document.getElementById('a-notes').value,
+  };
+  const btn=document.getElementById('add-txt');
+  btn.innerHTML='<span class="spin"></span> 添加中…';
+  const d=await(await fetch('/api/items',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
+  btn.textContent='➕ 添加到冰箱';
+  if(d.success){
+    toast(`✅ 已添加：${d.item.name}，到期 ${d.item.expiry_date}`);
+    ['a-name','a-qty','a-notes'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('a-days').value='';
+    document.getElementById('a-portions').value='1';
+    document.getElementById('lookup-chip').classList.remove('on');
+    document.getElementById('ai-days-result').classList.remove('on');
+    document.getElementById('meat-tip-add').classList.remove('on');
+    document.getElementById('ai-days-btn').disabled=true;
+    loadStats();
+  } else toast(d.error||'添加失败','err');
+}
+
+// ── 使用食材 Modal ──
+function openUse(id,name,amount,unit){
+  document.getElementById('use-id').value=id;
+  document.getElementById('use-unit').textContent=unit||'份';
+  document.getElementById('use-amount').value='';
+  document.getElementById('meat-tip-use').classList.toggle('on',isMeat(name));
+  if(amount>0){
+    document.getElementById('use-info').textContent=`${name}：当前剩余 ${amount}${unit}`;
+    document.getElementById('use-amount-wrap').style.display='flex';
+  } else {
+    document.getElementById('use-info').textContent=`${name}（未设置精确数量，将整份标记为用完）`;
+    document.getElementById('use-amount-wrap').style.display='none';
+  }
+  document.getElementById('use-overlay').classList.add('on');
+}
+function closeModal(){document.getElementById('use-overlay').classList.remove('on');}
+
+async function confirmUse(){
+  const id=document.getElementById('use-id').value;
+  const amt=parseFloat(document.getElementById('use-amount').value)||0;
+  const d=await(await fetch(`/api/items/${id}/use`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount_used:amt})})).json();
+  closeModal();
+  if(d.status==='depleted') toast('食材已用完，自动移除！');
+  else if(d.status==='updated') toast(`已记录使用，剩余：${d.remaining}${d.unit}`);
+  else toast('已整份移除');
+  loadItems();
+}
+
+// ── 预警（含阈值选择） ──
+function getThreshold(){
+  return parseInt(document.querySelector('input[name="threshold"]:checked').value);
+}
+
+// 同步选中样式
+document.querySelectorAll('input[name="threshold"]').forEach(radio=>{
+  radio.addEventListener('change',()=>{
+    document.querySelectorAll('.threshold-opt').forEach(l=>l.classList.remove('active'));
+    radio.closest('.threshold-opt').classList.add('active');
+    loadAlerts();
+  });
+});
+
+async function loadAlerts(){
+  const threshold=getThreshold();
+  const d=await(await fetch('/api/alerts')).json();
+
+  // 前端按阈值过滤
+  const expiring = d.expiring.filter(i=>i.days_remaining<=threshold);
+  const expired  = d.expired;
+
+  const se=document.getElementById('sec-expired');
+  const ss=document.getElementById('sec-expiring');
+  const em=document.getElementById('alerts-empty');
+
+  if(!expired.length&&!expiring.length){
+    se.style.display='none';ss.style.display='none';em.style.display='block';return;
+  }
+  em.style.display='none';
+
+  if(expired.length){
+    se.style.display='block';
+    document.getElementById('list-expired').innerHTML=expired.map(i=>`
+      <div class="alert-card a-exp">
+        <div><div class="a-name">${i.name} · ${i.quantity_display}</div><div class="a-meta">${i.zone} · ${i.status}</div></div>
+        <button class="btn btn-danger btn-sm" onclick="delItem('${i.item_id}','${i.name}')">🗑️ 处理掉</button>
+      </div>`).join('');
+  } else se.style.display='none';
+
+  if(expiring.length){
+    ss.style.display='block';
+    document.querySelector('#sec-expiring .card-title').textContent=
+      `⚠️ ${threshold}天内即将到期（共${expiring.length}种）`;
+    document.getElementById('list-expiring').innerHTML=
+      `<div id="chosen-bar"><span>✅ 已选中 <strong id="chosen-count">0</strong> 种食材</span><button class="btn btn-sm" style="background:var(--red-l);color:var(--red);margin-left:auto" onclick="clearChosen()">清除选中</button></div>`+
+      expiring.map(i=>`
+      <div class="alert-card a-soon" id="ac-${i.item_id}">
+        <div><div class="a-name">${i.name} · ${i.quantity_display}</div><div class="a-meta">${i.zone} · 到期：${i.expiry_date} · ${i.status}</div></div>
+        <button class="btn-choose" data-id="${i.item_id}" onclick="toggleChoose('${i.item_id}','${i.name}')">☑ 选中</button>
+      </div>`).join('');
+    updateChosenUI();
+  } else ss.style.display='none';
+}
+
+async function recipeFromAlert(){
+  document.querySelectorAll('.tab-btn')[3].click();
+  await getRecipe(true);
+}
+
+// ── 清除选中 ──
+function clearChosen() {
+  chosenItems = {};
+  updateChosenUI();
+}
+
+// ── 标准菜谱 ──
+async function getRecipe(expOnly){
+  const btn=document.getElementById('r-btn');
+  const out=document.getElementById('recipe-out');
+  btn.innerHTML='<span class="spin"></span> AI思考中…';
+  out.classList.remove('on');
+  const body={expiring_only:expOnly, n_suggestions:recipeN};
+  const r=await fetch('/api/recipe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  btn.textContent='🍳 获取菜谱建议';
+  if(r.status===503){toast('AI未配置，请设置API Key','err',5000);return;}
+  if(r.status===400){toast('冰箱是空的，请先添加食材','warn');return;}
+  const d=await r.json();
+  out.textContent=d.recipe;
+  out.classList.add('on');
+}
+
+async function getRecipeFromChosen(){
+  const ids = Object.keys(chosenItems);
+  if(!ids.length){toast('请先在「到期预警」Tab选中食材','warn');return;}
+  const btn=document.getElementById('r-chosen-btn');
+  const out=document.getElementById('recipe-out');
+  btn.innerHTML=`<span class="spin"></span> AI思考中…`;
+  out.classList.remove('on');
+  const body={item_ids:ids, n_suggestions:recipeN};
+  const r=await fetch('/api/recipe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  btn.innerHTML=`✅ 使用选中的食材（<span id="r-chosen-count">${ids.length}</span>种）`;
+  if(r.status===503){toast('AI未配置，请设置API Key','err',5000);return;}
+  if(r.status===400){toast('所选食材为空','warn');return;}
+  const d=await r.json();
+  out.textContent=d.recipe;
+  out.classList.add('on');
+}
+
+// ── 私人定制 ──
+document.querySelectorAll('.choice-row').forEach(row=>{
+  row.querySelectorAll('.choice-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      row.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('sel'));
+      btn.classList.add('sel');
+    });
+  });
+});
+const cVal=id=>document.querySelector(`#${id} .choice-btn.sel`)?.dataset.v||'随意';
+
+async function getCustomRecipe(){
+  const btn=document.getElementById('c-btn');
+  const out=document.getElementById('custom-out');
+  btn.innerHTML='<span class="spin"></span> 定制中…';
+  out.classList.remove('on');
+  const prefs={
+    flavor_region:cVal('g-region'),flavor_taste:cVal('g-taste'),occasion:cVal('g-occ'),
+    avoid:document.getElementById('c-avoid').value||'无',
+    custom_note:document.getElementById('c-note').value,
+    n_suggestions:customN,
+  };
+  const r=await fetch('/api/recipe/personalized',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(prefs)});
+  btn.textContent='✨ 生成专属菜谱';
+  if(r.status===503){toast('AI未配置，请设置API Key','err',5000);return;}
+  if(r.status===400){toast('冰箱是空的，请先添加食材','warn');return;}
+  const d=await r.json();
+  out.textContent=d.recipe;
+  out.classList.add('on');
+}
+
+// ── 本周膳食 ──
+async function getWeeklyPlan(){
+  const btn=document.getElementById('w-btn');
+  const out=document.getElementById('weekly-out');
+  const ph=document.getElementById('weekly-placeholder');
+  btn.innerHTML='<span class="spin"></span> AI规划中…';
+  out.classList.remove('on');
+  const r=await fetch('/api/recipe/weekly',{method:'POST'});
+  btn.textContent='📅 生成本周膳食计划';
+  if(r.status===503){toast('AI未配置，请设置API Key','err',5000);return;}
+  if(r.status===400){toast('冰箱是空的，请先添加食材','warn');return;}
+  const d=await r.json();
+  out.textContent=d.plan;
+  out.classList.add('on');
+  ph.style.display='none';
+}
+
+// ── 初始化 ──
+loadStats();
+loadItems();
+</script>
+</body>
+</html>
