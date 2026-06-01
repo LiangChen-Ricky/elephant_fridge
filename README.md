@@ -20,16 +20,16 @@ The idea came from a real-life problem: food gets pushed to the back of the frid
 
 ```text
 .
-├── app.py              # Flask web server
-├── main.py             # Command-line app
-├── models.py           # Fridge item and storage models
-├── database.py         # JSON-based local storage logic
-├── expiry_rules.py     # Food expiry knowledge base
-├── llm_advisor.py      # LLM provider integration and recipe prompts
-├── templates/
-│   └── index.html      # Web UI
-├── .env.example        # Example environment variables
-└── .gitignore          # Keeps API keys and local data out of Git
+|-- app.py              # Flask web server
+|-- main.py             # Command-line app
+|-- models.py           # Fridge item and storage models
+|-- database.py         # JSON-based local storage logic
+|-- expiry_rules.py     # Food expiry knowledge base
+|-- llm_advisor.py      # LLM provider integration and recipe prompts
+|-- templates/
+|   `-- index.html      # Web UI
+|-- .env.example        # Example environment variables
+`-- .gitignore          # Keeps API keys and local data out of Git
 ```
 
 ## Setup
@@ -103,3 +103,7 @@ This is a beginner-friendly Python + AI project, but it solves a real problem:
 - Add scheduled reminders for expiring food
 - Expand the food expiry knowledge base
 - Add tests for expiry logic and database operations
+
+## Development Log
+
+- 2026-06-01: Cleaned up the README project structure section and kept the repository documentation safe for public GitHub viewing.
