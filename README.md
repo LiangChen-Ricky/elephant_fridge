@@ -1,20 +1,21 @@
-# Elephant Fridge
+# 🐘 FreshElephant — 冰箱里的大象 OS
 
-FreshElephant is a Python project for managing groceries in a home fridge. It helps track food expiry dates, warns about ingredients that should be used soon, and uses an LLM to suggest simple recipes from what is already available.
+> **鲜到位，省到家，冰象守护你的冰箱**
 
-The idea came from a real-life problem: food gets pushed to the back of the fridge, forgotten, and eventually wasted. This app turns the fridge into a small inventory system with reminders and cooking suggestions.
+A smart fridge management app with AI-powered recipe suggestions, expiry alerts, and a self-learning food knowledge base. Built with Python + Flask + LLM API.
+
+The idea came from a real-life problem: food gets pushed to the back of the fridge, forgotten, and eventually wasted. This app turns the fridge into a small inventory system with reminders and AI cooking suggestions.
 
 ## Features
 
-- Add fridge items with name, storage zone, quantity, and notes
-- Automatically estimate expiry days from a food knowledge base
-- View all stored ingredients
-- Highlight food that is expiring soon or already expired
-- Use or remove ingredients from the inventory
-- Generate recipe suggestions with an LLM
-- Create personalized recipes based on taste, region, occasion, and dietary restrictions
-- Run as either a command-line program or a Flask web app
-- Support OpenRouter, Anthropic, and OpenAI API providers
+**6 tabs in the web UI:**
+
+- 📦 **冰箱库存** — View all items across fridge (冷藏), freezer (冷冻), and fresh shelf (保鲜); track quantity and days remaining
+- ➕ **添加食材** — Add items with smart auto-expiry lookup; click **AI建议** when unsure how long a food keeps
+- ⚠️ **到期预警** — Alerts for items expiring within 1 or 2 days; select items directly from alerts to cook with
+- 🍳 **标准菜谱** — AI suggests recipes from your fridge; prioritises expiring items; supports 1–10 recipe count
+- 👨‍🍳 **私人定制** — Personalised recipes filtered by region, taste, occasion, and dietary restrictions
+- 📅 **本周膳食** — AI generates a full 7-day breakfast/lunch/dinner meal plan
 
 ## Project Structure
 
@@ -34,31 +35,28 @@ The idea came from a real-life problem: food gets pushed to the back of the frid
 
 ## Setup
 
-Install the Python dependency used for OpenRouter/OpenAI-compatible APIs:
+**1. Install dependencies**
 
 ```powershell
-pip install openai
+pip install flask anthropic openai
 ```
 
-If you want to use Anthropic directly:
-
-```powershell
-pip install anthropic
-```
-
-Create a local `.env` file from `.env.example`:
-
-```powershell
-copy .env.example .env
-```
-
-Then add your own API key:
+**2. Configure your API key** — create a `.env` file in the project root:
 
 ```env
+# Option A: Anthropic Claude (recommended)
+ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxx
+
+# Option B: OpenRouter (free models available)
+OPENROUTER_API_KEY=sk-or-xxxxxxxxxxxxxxxx
 LLM_ENGINE=openrouter
-OPENROUTER_API_KEY=<your-openrouter-key>
 OPENROUTER_MODEL=google/gemma-3-27b-it:free
+
+# Option C: OpenAI
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxx
 ```
+
+The app auto-detects which engine to use. Priority order: **OpenRouter → Anthropic → OpenAI**.
 
 ## Run the CLI App
 
@@ -80,30 +78,44 @@ Then open:
 http://localhost:5000
 ```
 
+## AI Self-Learning Knowledge Base
+
+Every time you ask AI for a shelf-life suggestion, the result is saved to `user_kb.json` automatically. Next time you add the same food, it uses the cached answer — **no extra tokens spent**.
+
+Lookup priority:
+1. `user_kb.json` — AI-learned items (highest priority)
+2. Built-in database — 70+ common Chinese foods pre-loaded
+3. Fuzzy match — e.g. "猪肉末" matches "猪肉"
+4. Default fallback — 冷藏: 5 days, 保鲜: 4 days, 冷冻: 90 days
+
 ## API Key Safety
 
-The real `.env` file is ignored by Git and should never be committed.
+The real `.env` file is listed in `.gitignore` and is never committed to Git. Keep real keys local and avoid uploading `fridge_data.json` if it contains personal grocery data.
 
-This project intentionally commits only `.env.example`, which contains placeholders. Keep real keys local, rotate any key that has been exposed in screenshots, and avoid uploading `fridge_data.json` if it contains personal grocery data.
+## Tech Stack
 
-## Why This Project Matters
+| Layer | Technology |
+|-------|------------|
+| Backend | Python 3.10+, Flask |
+| Frontend | Vanilla HTML / CSS / JS (single file) |
+| Storage | JSON file — no database needed |
+| AI | Anthropic Claude / OpenRouter / OpenAI |
+| Default models | `claude-haiku-4-5-20251001` · `google/gemma-3-27b-it:free` · `gpt-4o-mini` |
 
-This is a beginner-friendly Python + AI project, but it solves a real problem:
+## Learning Context
 
-- less food waste
-- better weekly grocery planning
-- safer awareness of expiry dates
-- practical use of LLM APIs inside everyday software
+Built during Week 4 of learning Python as a real-world capstone project, studying Andrew Ng's [AI Python for Beginners](https://www.deeplearning.ai/short-courses/ai-python-for-beginners/) on DeepLearning.AI.
+
+Python concepts practised: `@dataclass`, `@property`, `Enum`, JSON I/O, Flask REST API, LLM SDK integration, `.env` secrets management, early return pattern, DRY principle.
 
 ## Next Steps
 
 - Add a shopping list workflow
-- Improve the web interface
 - Add image or receipt recognition for grocery entry
-- Add scheduled reminders for expiring food
+- Add scheduled push reminders for expiring food
 - Expand the food expiry knowledge base
-- Add tests for expiry logic and database operations
+- Add unit tests for expiry logic and database operations
 
-## Development Log
+---
 
-- 2026-06-01: Cleaned up the README project structure section and kept the repository documentation safe for public GitHub viewing.
+*小亮出品，必属精品* 🐘
