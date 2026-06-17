@@ -5,6 +5,7 @@
 
 # ── 数据文件 ──
 fridge_data.json
+user_kb.json
 
 # ── Python 编译缓存 ──
 __pycache__/
